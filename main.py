@@ -89,6 +89,8 @@ def save_model(args, model):
     if not os.path.exists(args["model_dir"]):
         os.makedirs(args["model_dir"])
     ckpt_file = os.path.join("data\\wjh\\graduate\\data\\save", "bert_kk_base_{}.pt".format(args["name"]))
+    ckpt_file = os.path.join(args["model_dir"], f"bert_kk_base_{args['name']}_{time.strftime('%Y%m%d_%H%M%S')}.pt")
+
     torch.save(model, ckpt_file)
     # 输出保存信息
     print(f"Best model saved at {ckpt_file}")
@@ -102,7 +104,7 @@ def test(args, model, device, tokenizer, albert_tokenizer):
         test_features, test_chunks_features, labels = convert_examples_to_features(args, examples, chunks, albert_tokenizer,tokenizer,
                                                 args["max_len"],
                                                 is_training=False)
-        pickle_file = os.path.join(args["pickle_folder"], "test_features_{}.pkl".format(args["name"]))
+        pickle_file = os.path.join(args["pickle_folder"], "test_kk_features_{}.pkl".format(args["name"]))
         test_data = {
             "test_features": test_features,
             "test_chunks_features": test_chunks_features,
@@ -260,6 +262,8 @@ def run(args):
     elif args["name"] == "SICK":
         args["n_class"] = 3
 
+    print(f"Task: {args['name']}, Number of classes: {args['n_class']}")
+
     args["train_file"] = os.path.join(root, args["name"])
     args["dev_file"] = os.path.join(root, args["name"])
 
@@ -268,7 +272,7 @@ def run(args):
     # 加载模型&测试数据写入pickle
     if args["test"]:
         # load the best model from validation-set
-        ckpt_file = os.path.join(args["model_dir"], "bert_base_{}.pt".format(args["name"]))
+        ckpt_file = os.path.join(args["model_dir"], "bert_kk_base_{}.pt".format(args["name"]))
         model = torch.load(ckpt_file, map_location="cpu")
         model = model.to(device)
         test(args, model, device, tokenizer, albert_tokenizer)
@@ -291,7 +295,7 @@ def run(args):
             pickle.dump(train_data, f)
             print("save pickle file at: {}".format(pickle_file))
     else:
-        file_name = "train_features_{}.pkl".format(name)
+        file_name = "train_kk_features_{}.pkl".format(name)
         pickle_file = os.path.join(args["pickle_folder"], file_name)
         assert os.path.exists(pickle_file) == True, "you must create pickle file set option --read_data"
         with open(pickle_file, "rb") as f:

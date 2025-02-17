@@ -15,11 +15,11 @@ def get_argparse():
 
     # 超参数
     parser.add_argument('--num_workers', type=int, default=0)
-    parser.add_argument('--num_train_epochs', type=int, default=10)
+    parser.add_argument('--num_train_epochs', type=int, default=3)
     parser.add_argument('--batch_size', type=int, default=64, help = "训练 batch")
     parser.add_argument('--test_batch_size', type=int, default=256, help = "验证预测batch大小")
     # parser.add_argument('--learning_rate', type=float, default=5e-5, help = "学习率")
-    parser.add_argument('--learning_rate', type=float, default=1e-5, help = "学习率")
+    parser.add_argument('--learning_rate', type=float, default=0.00005, help = "学习率")
     parser.add_argument('--eps', type=float, default=1e-8)
 
     parser.add_argument("--warm_up_rate", type=float, default=0.1)
@@ -38,7 +38,7 @@ def get_argparse():
 
     parser.add_argument('--seed', type=int, default=1234, help = "随机种子")
 
-    parser.add_argument('--uniform', type=int, default=0, help = "是否采用均匀分布的噪声")
+    parser.add_argument('--uniform', type=int, default=1, help = "是否采用均匀分布的噪声")
 
     parser.add_argument('--hidden_size', type=int, default=768)
     
@@ -50,7 +50,7 @@ def get_argparse():
     
     parser.add_argument('--test', type=int, default=0, help="是否为测试状态, 1表示测试，0表示训练或验证")
     
-    parser.add_argument('--read_data', type=int, default=1, help="0表示读取pickle")
+    parser.add_argument('--read_data', type=int, default=0, help="0表示读取pickle")
     
     parser.add_argument('--gate', type=int, default=1, help="0表示不使用gate网络")
     
@@ -63,7 +63,7 @@ def get_argparse():
 
     parser.add_argument('--dropout', type=float, default=0.1, help = "bert dropout的值")
     
-    parser.add_argument('--zero_peturb', type=int, default=3, help = "bert dropout的值")
+    parser.add_argument('--zero_peturb', type=int, default=0, help = "bert dropout的值")
 
     # 多GPU设置
 
@@ -73,13 +73,13 @@ def get_argparse():
 
     parser.add_argument("--local_rank", type=int, default=-1, help = "设置单机多卡使用的参数")
     
-    parser.add_argument("--gpu_id", type=int, default=2, help = "运行当前代码使用的GPU卡编号")
+    parser.add_argument("--gpu_id", type=int, default=1, help = "运行当前代码使用的GPU卡编号")
 
 
     # 文本长度
     parser.add_argument('--output_dim', type=int, default=768, help = "最后进行cosin相似度计算的embeding纬度")
 
-    parser.add_argument('--max_len', type=int, default=64, help = "pair长度")
+    parser.add_argument('--max_len', type=int, default=128, help = "pair长度")
 
     # 文件路径
 
@@ -108,8 +108,9 @@ def get_argparse():
                         help='L2 regularization parameter')
 
     # other
-    parser.add_argument('--name', type=str, default='RTE', help="用来指明当前训练的进程名、tensorboard文件名、将要保存的模型名")
+    parser.add_argument('--name', type=str, default='SciTail', help="用来指明当前训练的进程名、tensorboard文件名、将要保存的模型名")
     # parser.add_argument('--name', type=str, default='MRPC', help="用来指明当前训练的进程名、tensorboard文件名、将要保存的模型名")
+    # parser.add_argument('--name', type=str, default='RTE', help="用来指明当前训练的进程名、tensorboard文件名、将要保存的模型名")
 
     parser.add_argument(
         '--hidden_dropout_prob',

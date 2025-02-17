@@ -80,9 +80,9 @@ class NewBert(nn.Module):
 
             inputs_embeds = embeddings(input_ids)  # 获取输入嵌入
 
-            # 使用关键词鉴别网络获取关键词的重要性分数
-            keyword_scores = self.keyword_discriminator(hiddens.transpose(0, 1), attention_mask)
-            keyword_scores = keyword_scores.unsqueeze(-1)  # (batch_size, seq_len, 1)
+            # # 使用关键词鉴别网络获取关键词的重要性分数
+            # keyword_scores = self.keyword_discriminator(hiddens.transpose(0, 1), attention_mask)
+            # keyword_scores = keyword_scores.unsqueeze(-1)  # (batch_size, seq_len, 1)
 
             if self.args['uniform']:
                 # 如果启用了 uniform（均匀噪声），生成均匀分布的噪声矩阵
@@ -112,8 +112,8 @@ class NewBert(nn.Module):
                 kl = kl_criterion(_mu, _log_var, _prior_mu, _prior_logvar)
 
             # 根据关键词分数调整扰动强度
-            perturbation_strength = 1 - keyword_scores  # 对关键词施加较小的扰动
-            noise = noise * perturbation_strength  # 动态调整噪声强度
+            # perturbation_strength = 1 - keyword_scores  # 对关键词施加较小的扰动
+            # noise = noise * perturbation_strength  # 动态调整噪声强度
 
             # 随机丢弃（Random Discarding）操作
             rands = list(set([random.randint(1, inputs_embeds.shape[0] - 1) for i in range(self.args["zero_peturb"])]))
@@ -144,6 +144,7 @@ class NewBert(nn.Module):
             nll = outputs[0]
 
             # 如果启用了 Gate 网络，动态调整噪声损失和 NLL 损失的权重
+            # 论文中adapter的体现
             if self.args["gate"]:
                 last_noise = noise_outputs.hidden_states[-1]
                 last = outputs.hidden_states[-1]

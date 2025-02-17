@@ -253,28 +253,7 @@ def read_MRPC_aug(input_file, is_training):
 
     print("total train items:", index)
     return examples, chunks
-    '''二分类'''
-    input = "glue_data\\MRPC\\msr_paraphrase_train.txt"
-    # 使用 chunksize 参数读取文件
-    df_reader = pd.read_csv(input, sep='\t', chunksize=10)
 
-    examples, chunks = [], []
-    index = 0
-
-    # 迭代每个块
-    # for chunk in df_reader:
-    #     for i, row in chunk.iterrows():
-    #         print(index, row['sentence1'], row['sentence2'], row['label'])
-    #         index += 1
-    #         s1, s2, label = row['sentence1'], row['sentence2'], row['label']
-    #         example = MatchExample(str(s1), str(s2), int(label))
-    #         examples.append(example)
-    #         chunk = ChunkExample(PTM_keyword_extractor_yake(s1), PTM_keyword_extractor_yake(s2), label)
-    #         chunks.append(chunk)
-    #         # if i > 100: break  # 如果需要限制处理的行数，可以取消注释并设置一个合适的值
-
-    print("total train items:", index)
-    return examples, chunks
 
 def read_MNLIM(input_file, is_training):
     '''0表示contradiction， 1表示neutral，2表示entailment;
@@ -335,7 +314,59 @@ def read_MNLIMM(input_file, is_training):
         chunk = ChunkExample(PTM_keyword_extractor_yake(str(row['sentence1'])), PTM_keyword_extractor_yake(str(row['sentence2'])), label)
         chunks.append(chunk)
     return examples, chunks
-    
+
+def read_SciTail(input_file, is_training):
+    """
+    测试集有label，直接将测试集当作验证集进行超参数搜索
+    """
+    suffix = ["scitail_1.0_train.tsv", "scitail_1.0_test.tsv"]
+    if args.test:
+        suffix = "scitail_1.0_train.tsv"
+    else:
+        suffix = suffix[0] if is_training else suffix[-1]
+
+    dir_ = os.path.join(input_file, suffix)
+    df = pd.read_csv(dir_, sep='\t', header=0, quoting=3)
+
+    examples, chunks = [], []
+
+    for index, row in df.iterrows():  # iterrows() returns (index, row) where row is a pandas.Series
+        if args.test == 1:
+            label = 0
+        else:
+            # 访问row的标签时，row是一个pandas.Series对象
+            if isinstance(row['label'], int):
+                label = row['label']
+            else:
+                label = 1 if row['label'] == "entails" else 0
+
+        example = MatchExample(row['sentence1'], row['sentence2'], label)
+        chunk = ChunkExample(PTM_keyword_extractor_yake(row['sentence1']), PTM_keyword_extractor_yake(row['sentence2']),
+                             label)
+
+        chunks.append(chunk)
+        examples.append(example)
+
+    return examples, chunks
+
+def read_SciTail_aug(input_file, is_training):
+    '''二分类'''
+    output = "\\data\\wjh\\graduate\\AugData\\sick_backtrans.tsv"
+    df = pd.read_csv(output, sep = '\t')
+    examples, chunks = [], []
+    index = 0
+    for i, row in df.iterrows():
+        print(index, row['sentence1'], row['sentence2'], row['label'])
+        index += 1
+        s1, s2, label = row['sentence1'], row['sentence2'], row['label']
+        example = MatchExample(s1, s2, int(label))
+        examples.append(example)
+        chunk = ChunkExample(PTM_keyword_extractor_yake(s1), PTM_keyword_extractor_yake(s2), label)
+        chunks.append(chunk)
+    print("total train items:", index)
+    return examples, chunks
+
+
 def read_examples(input_file, name, is_training):
     """Read a json file into a list of Example."""
     
@@ -361,20 +392,25 @@ def read_examples(input_file, name, is_training):
             return read_SICK_aug(input_file, is_training)
         else:
             return read_SICK(input_file, is_training)
+    elif name == "SciTail":
+        # if is_training:
+        #     return read_SciTail_aug(input_file, is_training)
+        # else:
+            return read_SciTail(input_file, is_training)
     
     
 
 def convert_examples_to_features(args, examples, chunks, albert_tokenizer, tokenizer, max_len, is_training):
     features_examples, features_chunks, labels = [], [], []
     
-    for (example, chunk) in zip(examples, chunks):
-        pair_tokens_example  = tokenizer(example.sentence1, example.sentence2,
+    for example in examples:
+        pair_tokens_example = tokenizer(example.sentence1, example.sentence2,
                             max_length=args["max_len"],
                             truncation=True,  # 超过最大长度截断
                             padding='max_length',
-                             return_tensors="pt",
+                            return_tensors="pt",
                             add_special_tokens=True)  # 添加默认的token
-        
+
         features_examples.append(pair_tokens_example)
         
         
